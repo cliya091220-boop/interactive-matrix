@@ -300,6 +300,34 @@ tbody td.rowhead.second{ z-index: 6; }
 /* While the intro overlay is visible, prevent page scrolling */
 body.no-scroll { overflow: hidden; }
 
+  /* Intro overlay：移动端可滚动 + 安全滚动边界 */
+#intro-overlay{
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;  /* 防止橡皮筋把滚动传到底层页面 */
+}
+
+/* 内层卡片限制在视口内并单独可滚动 */
+#intro-overlay > div{
+  position: relative;             /* 让右上角关闭按钮可绝对定位 */
+  max-height: 88vh;               /* 卡片高度不超过视口 */
+  overflow: auto;                 /* 卡片内可以纵向滚动 */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 右上角关闭按钮样式（可调） */
+#intro-overlay .close-x{
+  position: absolute; top: 8px; right: 8px;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.15);
+  color: #fff; font-size: 20px; line-height: 30px;
+  text-align: center; cursor: pointer;
+}
+#intro-overlay .close-x:active{ transform: scale(.98); }
+
+  
 </style>
 </head>
 <body>
@@ -321,6 +349,7 @@ body.no-scroll { overflow: hidden; }
         box-shadow: 0 10px 30px rgba(0,0,0,0.35);
         padding: clamp(16px, 4vw, 28px);
       ">
+    <button id="intro-close" class="close-x" aria-label="Close">×</button>
     <h2 id="mx-intro-title" style="margin: 0 0 8px; font-size: clamp(18px, 2.6vw, 24px); font-weight: 700;">
       Welcome to the Interactive Matrix of Included Studies
     </h2>
@@ -1275,6 +1304,34 @@ window.addEventListener('resize', debounce(equalizeAllThemeRowHeights, 150));
   const startBtn = document.getElementById('mx-intro-start-btn');
   const dontShow = document.getElementById('mx-intro-dontshow');
 
+    const closeX = document.getElementById('intro-close');
+  if (closeX) {
+    closeX.addEventListener('click', () => {
+      if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
+      hideOverlay();
+    });
+  }
+
+  // 背景区域下滑手势关闭（避免与卡片内滚动冲突：只在点到背景时触发）
+  let touchStartY = null;
+  overlay.addEventListener('touchstart', (e) => {
+    if (e.target === overlay && e.touches && e.touches[0]) {
+      touchStartY = e.touches[0].clientY;
+    }
+  }, {passive:true});
+
+  overlay.addEventListener('touchmove', (e) => {
+    if (touchStartY == null || e.target !== overlay) return;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (dy > 80) { // 下滑超过 80px 认为想关闭
+      if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
+      hideOverlay();
+      touchStartY = null;
+    }
+  }, {passive:true});
+
+  overlay.addEventListener('touchend', () => { touchStartY = null; });
+
   if (!overlay) return;
 
   const KEY = 'matrix-intro-hide';  // 与蜘蛛图的 key 区分开
@@ -1348,3 +1405,4 @@ window.addEventListener('resize', debounce(equalizeAllThemeRowHeights, 150));
 
 </body>
 </html>
+
