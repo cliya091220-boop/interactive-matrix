@@ -327,74 +327,122 @@ body.no-scroll { overflow: hidden; }
 }
 #intro-overlay .close-x:active{ transform: scale(.98); }
 
+  /* 整个遮罩：自身可滚动，避免滚动“穿透”到页面 */
+#intro-overlay{
+  display: none;                      /* 由脚本控制显示/隐藏 */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;                /* 允许垂直滚动手势 */
+}
+
+/* 卡片容器：限制高度并让内容区滚动 */
+#intro-overlay .intro-card{
+  max-height: 92vh;                   /* 卡片高度不超视口 */
+  overflow: hidden;                   /* 由内部区域负责滚动 */
+  position: relative;
+}
+
+/* 内容区：可滚动 */
+#intro-overlay .intro-body{
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* sticky 底栏：永远可见 */
+#intro-overlay .intro-footer{
+  position: sticky; bottom: 0;
+  display: flex; gap: 10px; align-items: center; justify-content: flex-end;
+  padding: 10px 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.28), rgba(0,0,0,0.12), transparent);
+  backdrop-filter: blur(4px);
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+
+/* 开始按钮 */
+#intro-overlay .intro-start{
+  padding: 10px 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.25); border-radius: 10px;
+  background: #ffffff; color: #111;
+}
+#intro-overlay .intro-start:active{ transform: scale(.98); }
+
+/* 右上角关闭按钮 */
+#intro-overlay .close-x{
+  position: absolute; top: 8px; right: 8px;
+  width: 36px; height: 36px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.15);
+  color: #fff; font-size: 22px; line-height: 34px;
+  text-align: center; cursor: pointer;
+}
+#intro-overlay .close-x:active{ transform: scale(.98); }
+
+/* 仅桌面端锁滚动；移动端不锁，避免 iOS 滚动被“封死” */
+@media (hover: hover){
+  body.no-scroll { overflow: hidden; }
+}
   
 </style>
 </head>
 <body>
-<!-- ===== Intro / How-to Overlay for the Matrix ===== -->
-<div id="matrix-intro"
-     role="dialog" aria-modal="true" aria-labelledby="mx-intro-title" aria-describedby="mx-intro-desc"
+<!-- ===== Intro / How-to Overlay ===== -->
+<div id="intro-overlay"
+     role="dialog" aria-modal="true" aria-labelledby="intro-title" aria-describedby="intro-desc"
      style="
        position: fixed; inset: 0; z-index: 9999;
-       display: flex; flex-direction: column; align-items: center; justify-content: center;
-       background: rgba(0,0,0,0.80); color: #fff; text-align: left; padding: 24px;
+       display: none;            /* 默认隐藏，由脚本控制显示 */
+       background: rgba(0,0,0,0.80); color: #fff; text-align: left;
        font-family: inherit;
      ">
-  <div style="
-        width: min(880px, 92vw);
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 14px;
-        backdrop-filter: blur(6px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-        padding: clamp(16px, 4vw, 28px);
-      ">
-    <button id="intro-close" class="close-x" aria-label="Close">×</button>
-    <h2 id="mx-intro-title" style="margin: 0 0 8px; font-size: clamp(18px, 2.6vw, 24px); font-weight: 700;">
-      Welcome to the Interactive Matrix of Included Studies
-    </h2>
+  <div class="intro-card"
+       style="
+         width: min(880px, 92vw);
+         margin: 24px auto;                 /* 居中 + 留出上下空间 */
+         background: rgba(255,255,255,0.06);
+         border: 1px solid rgba(255,255,255,0.15);
+         border-radius: 14px;
+         backdrop-filter: blur(6px);
+         box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+         display: flex; flex-direction: column;
+       ">
 
-    <p id="mx-intro-desc" style="margin: 0 0 14px; line-height: 1.6; font-size: clamp(14px, 2.1vw, 16px); opacity: 0.95;">
-      This matrix maps each included study (columns) against findings (rows). Use the toolbar to recolor and sort columns, and hover cells for details.
-    </p>
+    <!-- 内容区（可滚动） -->
+    <div class="intro-body" style="padding: clamp(16px, 4vw, 28px);">
+      <h2 id="intro-title" style="margin: 0 0 8px; font-size: clamp(18px, 2.6vw, 24px); font-weight: 700;">
+        Welcome to the Interactive Matrix of Included Studies
+      </h2>
 
-    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin: 12px 0 16px;">
-      <div style="background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.25); border-radius: 10px; padding: 12px;">
+      <p id="intro-desc" style="margin: 0 0 14px; line-height: 1.6; font-size: clamp(14px, 2.1vw, 16px); opacity: 0.95;">
+        This matrix maps each included study (columns) against findings (rows). Use the toolbar to recolor and sort columns, and hover cells for details.
+      </p>
+
+      <div style="background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.25); border-radius: 10px; padding: 12px; margin: 12px 0 10px;">
         <strong>How to use</strong>
         <ul style="margin: 8px 0 0 18px; line-height: 1.6; font-size: clamp(14px, 2.1vw, 16px);">
-          <li>Use the <b>toolbar</b> to switch color modes: <i>MMAT Quality</i>, <i>Study Design</i>, <i>Participant perspectives</i>, <i>Stage</i>, <i>Focus</i>.</li>
-          <li>Click <b>“Sort by current color”</b> to group study columns by the active color buckets; click <b>“Reset”</b> to restore Study ID order.</li>
-          <li>The <b>first two columns</b> (Group, Theme) are frozen; scroll both ways to explore the matrix.</li>
-          <li><b>Hover</b> any colored cell or header for a tooltip with study/design/MMAT and, when available, data-type/perspective/focus.</li>
-          <li>In <b>MMAT</b> mode, right-side columns show per-theme <i>distribution</i> and <i>Density</i>; the footer shows per-study <i>Themes contributed</i> and <i>Data richness</i>.</li>
-          <li>Refer to the <b>legend</b> below the toolbar to read the color mappings for the current mode.</li>
+          <li>Use the toolbar to switch color modes: MMAT Quality, Study Design, Participant perspectives, Stage, Focus.</li>
+          <li>Click “Sort by current color” to group study columns by the active color buckets; click “Reset” to restore Study ID order.</li>
+          <li>The first two columns (Group, Theme) are frozen; scroll both ways to explore the matrix.</li>
+          <li>Hover any colored cell or header for a tooltip with study/design/MMAT and, when available, data-type/perspective/focus.</li>
+          <li>In MMAT mode, right-side columns show per-theme distribution and Density; the footer shows per-study Themes contributed and Data richness.</li>
+          <li>Refer to the legend below the toolbar to read the color mappings for the current mode.</li>
         </ul>
-      </div>
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
-        <label style="display:flex; align-items:center; gap:8px; font-size: 14px; opacity: 0.95; cursor: pointer;">
-          <input id="mx-intro-dontshow" type="checkbox" style="transform: scale(1.2);" />
-          Don’t show this guide next time
-        </label>
-        <button id="mx-intro-start-btn"
-                style="
-                  padding: 10px 18px; font-size: 15px; font-weight: 600; cursor: pointer;
-                  border: 1px solid rgba(255,255,255,0.25); border-radius: 10px;
-                  background: #ffffff; color: #111; transition: transform .05s ease;
-                "
-                onmousedown="this.style.transform='scale(0.98)';"
-                onmouseup="this.style.transform='scale(1)';">
-          Start exploring
-        </button>
       </div>
     </div>
 
-    <div style="opacity: 0.8; font-size: 12px; text-align: right;">
-      Tip: Press <kbd>Esc</kbd> to close this guide.
+    <!-- 底部 sticky 工具条（始终可见） -->
+    <div class="intro-footer">
+      <label style="display:flex; align-items:center; gap:8px; font-size: 14px; opacity: 0.95; cursor: pointer;">
+        <input id="intro-dontshow" type="checkbox" style="transform: scale(1.2);" />
+        Don’t show this guide next time
+      </label>
+      <button id="intro-start-btn" class="intro-start">Start exploring</button>
     </div>
   </div>
 </div>
 <!-- ===== /Intro Overlay ===== -->
+
 
 
 <!-- 单位徽章：把下面的 PASTE_BASE64_HERE 替换为你的 PNG 的 Base64 字符串 -->
@@ -1300,11 +1348,40 @@ window.addEventListener('resize', debounce(equalizeAllThemeRowHeights, 150));
 
 <script>
 (function () {
-  const overlay  = document.getElementById('matrix-intro');
-  const startBtn = document.getElementById('mx-intro-start-btn');
-  const dontShow = document.getElementById('mx-intro-dontshow');
+  const overlay  = document.getElementById('intro-overlay');
+  const startBtn = document.getElementById('intro-start-btn');
+  const dontShow = document.getElementById('intro-dontshow');
+  const closeX   = document.getElementById('intro-close');
 
-    const closeX = document.getElementById('intro-close');
+  // 是否移动端（不带 hover 的环境基本就是触屏）
+  const isTouch = matchMedia('(hover: none)').matches;
+
+  function showOverlay() {
+    overlay.style.display = 'block';
+    if (!isTouch) document.body.classList.add('no-scroll');
+    // 尝试把焦点给按钮，便于无障碍
+    try { startBtn && startBtn.focus(); } catch(_) {}
+  }
+
+  function hideOverlay() {
+    overlay.style.display = 'none';
+    document.body.classList.remove('no-scroll');
+  }
+
+  // 初次进入：除非用户勾选了“不再显示”
+  const KEY = 'hs-intro-hide';
+  const shouldHide = (localStorage.getItem(KEY) === '1');
+  if (!shouldHide) showOverlay();
+
+  // 按钮：Start exploring
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
+      hideOverlay();
+    });
+  }
+
+  // 按钮：右上角 ×
   if (closeX) {
     closeX.addEventListener('click', () => {
       if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
@@ -1312,58 +1389,17 @@ window.addEventListener('resize', debounce(equalizeAllThemeRowHeights, 150));
     });
   }
 
-  // 背景区域下滑手势关闭（避免与卡片内滚动冲突：只在点到背景时触发）
-  let touchStartY = null;
-  overlay.addEventListener('touchstart', (e) => {
-    if (e.target === overlay && e.touches && e.touches[0]) {
-      touchStartY = e.touches[0].clientY;
-    }
-  }, {passive:true});
-
-  overlay.addEventListener('touchmove', (e) => {
-    if (touchStartY == null || e.target !== overlay) return;
-    const dy = e.touches[0].clientY - touchStartY;
-    if (dy > 80) { // 下滑超过 80px 认为想关闭
+  // 点击遮罩空白处关闭（点击卡片内部不关闭）
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
       if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
       hideOverlay();
-      touchStartY = null;
     }
-  }, {passive:true});
-
-  overlay.addEventListener('touchend', () => { touchStartY = null; });
-
-  if (!overlay) return;
-
-  const KEY = 'matrix-intro-hide';  // 与蜘蛛图的 key 区分开
-  const hide = (localStorage.getItem(KEY) === '1');
-
-  function showOverlay() {
-    overlay.style.display = 'flex';
-    document.body.classList.add('no-scroll');
-    try { startBtn && startBtn.focus(); } catch(_) {}
-  }
-  function hideOverlay() {
-    overlay.style.display = 'none';
-    document.body.classList.remove('no-scroll');
-  }
-
-  // 初次进入或未勾选“Don’t show” → 显示
-  if (!hide) showOverlay();
-
-  // 开始按钮
-  startBtn && startBtn.addEventListener('click', () => {
-    if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
-    hideOverlay();
   });
 
   // ESC 关闭
   document.addEventListener('keydown', (e) => {
-    if (overlay.style.display !== 'none' && (e.key === 'Escape' || e.key === 'Esc')) hideOverlay();
-  });
-
-  // 点击遮罩空白处关闭
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) {
+    if (overlay.style.display !== 'none' && (e.key === 'Escape' || e.key === 'Esc')) {
       if (dontShow && dontShow.checked) localStorage.setItem(KEY, '1');
       hideOverlay();
     }
@@ -1405,4 +1441,5 @@ window.addEventListener('resize', debounce(equalizeAllThemeRowHeights, 150));
 
 </body>
 </html>
+
 
